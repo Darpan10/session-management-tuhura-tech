@@ -1,15 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+// import { useAuth } from '../context/AuthContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  // const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate('/login');
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -21,12 +21,12 @@ const Dashboard: React.FC = () => {
               <img src="/logo.svg" alt="Tuhura Tech" className="h-12 w-auto" />
               <h1 className="text-2xl font-bold text-gray-900">Session Management</h1>
             </div>
-            <button
+            {/* <button
               onClick={handleLogout}
               className="btn-secondary"
             >
               Logout
-            </button>
+            </button> */}
           </div>
         </div>
       </header>
@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
         {/* Welcome Card */}
         <div className="card mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome back, {user?.email}!
+            Welcome back, Developer!
           </h2>
           <p className="text-gray-600">
             You're successfully logged in to the Session Management System.
@@ -50,23 +50,21 @@ const Dashboard: React.FC = () => {
             <div className="space-y-3">
               <div>
                 <span className="font-medium text-gray-700">User ID:</span>
-                <span className="ml-2 text-gray-600">{user?.id}</span>
+                <span className="ml-2 text-gray-600">DEV-001</span>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Email:</span>
-                <span className="ml-2 text-gray-600">{user?.email}</span>
+                <span className="ml-2 text-gray-600">developer@tuhuratech.com</span>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Roles:</span>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {user?.roles.map((role) => (
-                    <span
-                      key={role}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-tuhura-lightBlue text-tuhura-darkBlue"
-                    >
-                      {role}
-                    </span>
-                  ))}
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-tuhura-lightBlue text-tuhura-darkBlue">
+                    Admin
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-tuhura-lightBlue text-tuhura-darkBlue">
+                    Developer
+                  </span>
                 </div>
               </div>
             </div>
@@ -93,16 +91,52 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Info Card */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">
-            🎓 For Students & Developers
-          </h3>
-          <p className="text-blue-700">
-            This is a demonstration of a secure session management system with separate frontend and backend layers.
-            The API layer follows OpenAPI specifications, allowing independent modification of either the frontend
-            (React + TypeScript) or backend (Python + FastAPI).
-          </p>
+        {/* Quick Actions */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link
+            to="/admin/sessions"
+            className="card hover:shadow-xl transition-shadow cursor-pointer"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-tuhura-blue rounded-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Manage Sessions</h3>
+                <p className="text-sm text-gray-600">Create and manage sessions</p>
+              </div>
+            </div>
+          </Link>
+
+          <div className="card opacity-50 cursor-not-allowed">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gray-400 rounded-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Manage Students</h3>
+                <p className="text-sm text-gray-600">Coming soon</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card opacity-50 cursor-not-allowed">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gray-400 rounded-lg">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Reports</h3>
+                <p className="text-sm text-gray-600">Coming soon</p>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
