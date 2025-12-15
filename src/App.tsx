@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import CalendarPage from './pages/Calendar';
 
 const App: React.FC = () => {
   return (
@@ -14,6 +15,7 @@ const App: React.FC = () => {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/calender" element={<CalendarPage />} />
 
           {/* Protected Routes */}
           <Route
@@ -26,8 +28,15 @@ const App: React.FC = () => {
           />
 
           {/* Default Redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+
+          
+          {/* <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} /> */}
+
+
+          <Route path="/c" element={<Navigate to="/calender" replace />} />
+
+
         </Routes>
       </AuthProvider>
     </BrowserRouter>
