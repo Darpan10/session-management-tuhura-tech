@@ -5,6 +5,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import SessionManagement from './pages/admin/SessionManagement';
+import CreateSession from './pages/admin/CreateSession';
+import EditSession from './pages/admin/EditSession';
 
 const App: React.FC = () => {
   return (
@@ -21,6 +24,32 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin/sessions"
+            element={
+              <ProtectedRoute>
+                <SessionManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/sessions/create"
+            element={
+              <ProtectedRoute>
+                <CreateSession />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/sessions/:id/edit"
+            element={
+              <ProtectedRoute>
+                <EditSession />
               </ProtectedRoute>
             }
           />

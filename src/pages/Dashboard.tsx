@@ -1,6 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Sidebar from '../components/Sidebar';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -12,27 +13,25 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <img src="/logo.svg" alt="Tuhura Tech" className="h-12 w-auto" />
-              <h1 className="text-2xl font-bold text-gray-900">Session Management</h1>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="btn-secondary"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <Sidebar />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1">
+        {/* Header */}
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <img src="/logo.svg" alt="Tuhura Tech" className="h-10 w-10" />
+                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Card */}
         <div className="card mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -41,6 +40,66 @@ const Dashboard: React.FC = () => {
           <p className="text-gray-600">
             You're successfully logged in to the Session Management System.
           </p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
+              to="/admin/sessions"
+              className="card hover:shadow-xl transition-shadow cursor-pointer group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-[#6AA469] rounded-lg flex items-center justify-center group-hover:shadow-md transition-shadow">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900">Manage Sessions</h4>
+                  <p className="text-sm text-tuhura-gray">View and edit sessions</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/admin/sessions/create"
+              className="card hover:shadow-xl transition-shadow cursor-pointer group"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-[#6AA469] rounded-lg flex items-center justify-center group-hover:shadow-md transition-shadow">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900">Create Session</h4>
+                  <p className="text-sm text-tuhura-gray">Add a new session</p>
+                </div>
+              </div>
+            </Link>
+
+            <div className="card hover:shadow-xl transition-shadow cursor-pointer group opacity-50">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-tuhura-gray/10 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-tuhura-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900">View Reports</h4>
+                  <p className="text-sm text-tuhura-gray">Coming soon</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* User Info Card */}
@@ -92,19 +151,8 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Info Card */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">
-            🎓 For Students & Developers
-          </h3>
-          <p className="text-blue-700">
-            This is a demonstration of a secure session management system with separate frontend and backend layers.
-            The API layer follows OpenAPI specifications, allowing independent modification of either the frontend
-            (React + TypeScript) or backend (Python + FastAPI).
-          </p>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

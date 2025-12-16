@@ -23,6 +23,7 @@ export default {
           blue: '#00A8E8',
           darkBlue: '#003554',
           lightBlue: '#5BC0DE',
+          green: '#6AA469',
           gray: '#6C757D',
         }
       },
