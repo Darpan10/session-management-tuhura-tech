@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { sessionAPI } from '../../services/sessionAPI';
 import type { SessionFormData, StaffMember } from '../../types/session';
 import Sidebar from '../../components/Sidebar';
+import { useAuth } from '../../context/AuthContext';
 
 const TERMS = ['Term 1', 'Term 2', 'Term 3', 'Term 4'];
 const DAYS_OF_WEEK = [
@@ -18,6 +19,14 @@ const DAYS_OF_WEEK = [
 const EditSession: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (user && !user.roles?.includes('ADMIN')) {
+      navigate('/admin/calendar');
+    }
+  }, [user, navigate]);
 
   const [formData, setFormData] = useState<SessionFormData>({
     title: '',
@@ -204,6 +213,7 @@ const EditSession: React.FC = () => {
         capacity: formData.capacity,
         minAge: formData.minAge,
         maxAge: formData.maxAge,
+        staffIds: formData.staffIds,
       });
 
       setSuccess(true);
