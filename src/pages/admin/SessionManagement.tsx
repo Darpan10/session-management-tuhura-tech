@@ -3,14 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { sessionAPI } from '../../services/sessionAPI';
 import type { Session } from '../../types/session';
 import Sidebar from '../../components/Sidebar';
+import { useAuth } from '../../context/AuthContext';
 
 const SessionManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const isAdmin = user?.roles?.includes('ADMIN') || false;
 
   useEffect(() => {
     loadSessions();
@@ -94,17 +98,19 @@ const SessionManagement: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Sessions</h2>
-            <p className="mt-2 text-gray-600">Manage and create sessions</p>
+            <p className="mt-2 text-gray-600">{isAdmin ? 'Manage and create sessions' : 'View all sessions'}</p>
           </div>
-          <Link
-            to="/admin/sessions/create"
-            className="btn-primary inline-flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create New Session
-          </Link>
+          {isAdmin && (
+            <Link
+              to="/admin/sessions/create"
+              className="btn-primary inline-flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Session
+            </Link>
+          )}
         </div>
 
         {/* Error Message */}
@@ -226,41 +232,53 @@ const SessionManagement: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex space-x-2 ml-4">
-                    <button
-                      onClick={() => navigate(`/admin/sessions/${session.id}/edit`)}
-                      className="p-2 text-[#6AA469] hover:bg-[#6AA469]/10 rounded-md transition-all"
-                      title="Edit session"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(session.id)}
-                      disabled={deleteId === session.id}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-md disabled:opacity-50 transition-colors"
-                      title="Delete session"
-                    >
-                      {deleteId === session.id ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
-                      ) : (
+                  {isAdmin && (
+                    <div className="flex space-x-2 ml-4">
+                      <button
+                        onClick={() => navigate(`/admin/sessions/${session.id}/waitlist`)}
+                        className="p-2 rounded-md transition-all hover:bg-blue-50"
+                        style={{ color: '#6AA469' }}
+                        title="View waitlist"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => navigate(`/admin/sessions/${session.id}/edit`)}
+                        className="p-2 text-[#6AA469] hover:bg-[#6AA469]/10 rounded-md transition-all"
+                        title="Edit session"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(session.id)}
+                        disabled={deleteId === session.id}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-md disabled:opacity-50 transition-colors"
+                        title="Delete session"
+                      >
+                        {deleteId === session.id ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             strokeWidth={2}
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                           />
                         </svg>
                       )}
                     </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
