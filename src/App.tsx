@@ -8,13 +8,6 @@ import Dashboard from './pages/Dashboard';
 import SessionManagement from './pages/admin/SessionManagement';
 import CreateSession from './pages/admin/CreateSession';
 import EditSession from './pages/admin/EditSession';
-import CalendarView from './pages/admin/CalendarView';
-import WaitlistManagement from './pages/admin/WaitlistManagement';
-import StudentSignup from './pages/StudentSignup';
-import AccountSettings from './pages/AccountSettings';
-import StudentSignups from './pages/admin/StudentSignups';
-import EditStudent from './pages/admin/EditStudent';
-import ViewStudent from './pages/admin/ViewStudent';
 
 const App: React.FC = () => {
   return (
@@ -24,7 +17,6 @@ const App: React.FC = () => {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/signup" element={<StudentSignup />} />
 
           {/* Protected Routes */}
           <Route
@@ -36,30 +28,12 @@ const App: React.FC = () => {
             }
           />
 
-          {/* Account Settings Route */}
-          <Route
-            path="/account-settings"
-            element={
-              <ProtectedRoute>
-                <AccountSettings />
-              </ProtectedRoute>
-            }
-          />
-
           {/* Admin Routes */}
           <Route
             path="/admin/sessions"
             element={
               <ProtectedRoute>
                 <SessionManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/calendar"
-            element={
-              <ProtectedRoute>
-                <CalendarView />
               </ProtectedRoute>
             }
           />
@@ -76,38 +50,6 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <EditSession />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/sessions/:sessionId/waitlist"
-            element={
-              <ProtectedRoute>
-                <WaitlistManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/students"
-            element={
-              <ProtectedRoute>
-                <StudentSignups />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/students/:id/edit"
-            element={
-              <ProtectedRoute>
-                <EditStudent />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/students/:id"
-            element={
-              <ProtectedRoute>
-                <ViewStudent />
               </ProtectedRoute>
             }
           />

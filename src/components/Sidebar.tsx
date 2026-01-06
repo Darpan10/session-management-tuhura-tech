@@ -20,8 +20,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  const isAdmin = user?.roles?.includes('ADMIN') || false;
-
   const navItems = [
     {
       name: 'Dashboard',
@@ -37,20 +35,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
       path: '/admin/sessions',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-      ),
-    },
-    {
-      name: 'Calendar View',
-      path: '/admin/calendar',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
     },
-    ...(isAdmin ? [{
+    {
       name: 'Create Session',
       path: '/admin/sessions/create',
       icon: (
@@ -59,15 +48,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         </svg>
       ),
     },
-    {
-      name: 'Student Signups',
-      path: '/admin/students',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ),
-    }] : []),
   ];
 
   return (
@@ -120,10 +100,34 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-white/20">
-        <div className="text-center text-xs text-white/60">
-          © {new Date().getFullYear()} Tuhura Tech
+      {/* Quick Stats */}
+      <div className="p-4 bg-white/10 backdrop-blur-sm border-t border-white/20">
+        <div className="text-xs text-white/70 mb-2">Quick Stats</div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white/10 rounded-lg p-2 text-center">
+            <div className="text-xl font-bold">--</div>
+            <div className="text-xs text-white/70">Sessions</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-2 text-center">
+            <div className="text-xl font-bold">--</div>
+            <div className="text-xs text-white/70">Upcoming</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Actions */}
+      <div className="p-4 border-t border-white/20 space-y-2">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-lg"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span className="font-medium">Logout</span>
+        </button>
+        <div className="text-center text-xs text-white/60 pt-2">
+          © 2025 Tuhura Tech
         </div>
       </div>
     </div>
