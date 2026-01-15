@@ -11,7 +11,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-tuhura-blue hover:bg-tuhura-darkBlue text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-[#6AA469] hover:bg-[#5a9159] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg;
   }
   
   .btn-secondary {
@@ -19,81 +19,7 @@
   }
   
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuhura-blue focus:border-transparent outline-none transition-all duration-200;
-  }
-  
-  .input-error {
-    @apply border-red-500 focus:ring-red-500;
-  }
-  
-  .card {
-    @apply bg-white rounded-xl shadow-lg p-8;
-  }
-  
-  .error-message {
-    @apply text-red-600 text-sm mt-1;
-  }
-  
-  .success-message {
-    @apply text-green-600 text-sm mt-1;
-  }
-}
-
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-tuhura-blue hover:bg-tuhura-darkBlue text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuhura-blue focus:border-transparent outline-none transition-all duration-200;
-  }
-  
-  .input-error {
-    @apply border-red-500 focus:ring-red-500;
-  }
-  
-  .card {
-    @apply bg-white rounded-xl shadow-lg p-8;
-  }
-  
-  .error-message {
-    @apply text-red-600 text-sm mt-1;
-  }
-  
-  .success-message {
-    @apply text-green-600 text-sm mt-1;
-  }
-}
-
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-tuhura-blue hover:bg-tuhura-darkBlue text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuhura-blue focus:border-transparent outline-none transition-all duration-200;
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00A8E8] focus:border-transparent outline-none transition-all duration-200;
   }
   
   .input-error {

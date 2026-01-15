@@ -1,25 +1,59 @@
-import apiClient from './api';
+import axios, { AxiosError } from 'axios';
 import type {
+  Session,
   CreateSessionRequest,
   CreateSessionResponse,
-  Session,
-  Term,
-  Staff
+  StaffMember
 } from '../types/session';
 
-export const sessionAPI = {
-  /**
-   * Create a new session
-   */
-  createSession: async (data: CreateSessionRequest): Promise<CreateSessionResponse> => {
-    try {
-      const response = await apiClient.post<CreateSessionResponse>('/api/sessions/create', data);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to create session');
-    }
-  },
+// Use the same base URL as auth API
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
+// Create axios instance
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 10000,
+});
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Helper function to extract error message
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+  const axiosError = error as AxiosError<{ detail?: string | { message: string }; message?: string }>;
+  console.error('API Error:', {
+    status: axiosError.response?.status,
+    data: axiosError.response?.data,
+    message: axiosError.message
+  });
+  
+  const errorDetail = axiosError.response?.data?.detail;
+  if (typeof errorDetail === 'string') {
+    return errorDetail;
+  }
+  if (errorDetail && typeof errorDetail === 'object' && 'message' in errorDetail) {
+    return errorDetail.message;
+  }
+  if (axiosError.response?.data?.message) {
+    return axiosError.response.data.message;
+  }
+  return defaultMessage;
+};
+
+// Session API endpoints
+export const sessionAPI = {
   /**
    * Get all sessions
    */
@@ -27,44 +61,46 @@ export const sessionAPI = {
     try {
       const response = await apiClient.get<Session[]>('/api/sessions');
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to fetch sessions');
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch sessions'));
     }
   },
 
   /**
-   * Get session by ID
+   * Get a single session by ID
    */
-  getSessionById: async (id: number): Promise<Session> => {
+  getSession: async (id: number): Promise<Session> => {
     try {
       const response = await apiClient.get<Session>(`/api/sessions/${id}`);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to fetch session');
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch session'));
     }
   },
 
   /**
-   * Get all available terms
+   * Create a new session
    */
-  getTerms: async (): Promise<Term[]> => {
+  createSession: async (data: CreateSessionRequest): Promise<CreateSessionResponse> => {
     try {
-      const response = await apiClient.get<Term[]>('/api/terms');
+      console.log('Creating session with data:', data);
+      const response = await apiClient.post<CreateSessionResponse>('/api/sessions', data);
+      console.log('Session created successfully:', response.data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to fetch terms');
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to create session'));
     }
   },
 
   /**
-   * Get all staff members
+   * Update an existing session
    */
-  getStaff: async (): Promise<Staff[]> => {
+  updateSession: async (id: number, data: Partial<CreateSessionRequest>): Promise<Session> => {
     try {
-      const response = await apiClient.get<Staff[]>('/api/staff');
+      const response = await apiClient.put<Session>(`/api/sessions/${id}`, data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to fetch staff');
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to update session'));
     }
   },
 
@@ -74,8 +110,113 @@ export const sessionAPI = {
   deleteSession: async (id: number): Promise<void> => {
     try {
       await apiClient.delete(`/api/sessions/${id}`);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to delete session');
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to delete session'));
+    }
+  },
+
+  /**
+   * Get all staff members (users with STAFF role)
+   */
+  getStaff: async (): Promise<StaffMember[]> => {
+    try {
+      const response = await apiClient.get<StaffMember[]>('/api/sessions/staff');
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch staff members'));
+    }
+  },
+
+  /**
+   * Bulk update waitlist entry status
+   */
+  bulkUpdateStatus: async (waitlistIds: number[], newStatus: 'waitlist' | 'admitted' | 'withdrawn'): Promise<{ updated_count: number; message: string }> => {
+    try {
+      console.log('Bulk update request:', { waitlist_ids: waitlistIds, new_status: newStatus });
+      const response = await apiClient.post('/api/waitlist/bulk-status', {
+        waitlist_ids: waitlistIds,
+        new_status: newStatus,
+      });
+      console.log('Bulk update response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Bulk update error details:', error);
+      throw new Error(getErrorMessage(error, 'Failed to update student status'));
+    }
+  },
+
+  /**
+   * Get waitlist entries by status for a specific session
+   */
+  getWaitlistByStatus: async (sessionId: number, status: 'waitlist' | 'admitted' | 'withdrawn'): Promise<any[]> => {
+    try {
+      const response = await apiClient.get(`/api/waitlist/session/${sessionId}/status/${status}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch waitlist'));
+    }
+  },
+
+  /**
+   * Get count of admitted students for a session
+   */
+  getAdmittedCount: async (sessionId: number): Promise<number> => {
+    try {
+      const response = await apiClient.get(`/api/waitlist/session/${sessionId}/admitted-count`);
+      return response.data.admitted_count;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch admitted count'));
+    }
+  },
+
+  /**
+   * Get detailed information for a specific waitlist entry
+   */
+  getWaitlistEntry: async (waitlistId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/api/waitlist/${waitlistId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch student details'));
+    }
+  },
+
+  /**
+   * Update student information
+   */
+  updateStudent: async (studentId: number, data: any): Promise<any> => {
+    try {
+      const response = await apiClient.put(`/api/waitlist/students/${studentId}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to update student'));
+    }
+  },
+
+  /**
+   * Get attendance records for a session
+   */
+  getSessionAttendance: async (sessionId: number): Promise<any[]> => {
+    try {
+      const response = await apiClient.get(`/api/attendance/session/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to fetch attendance'));
+    }
+  },
+
+  /**
+   * Bulk update attendance records
+   */
+  bulkUpdateAttendance: async (sessionId: number, records: any[]): Promise<any> => {
+    try {
+      const response = await apiClient.post('/api/attendance/bulk-update', {
+        session_id: sessionId,
+        records: records
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, 'Failed to save attendance'));
     }
   },
 };

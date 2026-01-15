@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { sessionAPI } from '../../services/sessionAPI';
 import type { SessionFormData, StaffMember } from '../../types/session';
 import Sidebar from '../../components/Sidebar';
@@ -16,8 +16,9 @@ const DAYS_OF_WEEK = [
   'Sunday',
 ];
 
-const CreateSession: React.FC = () => {
+const EditSession: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
 
   // Redirect non-admin users
@@ -33,14 +34,14 @@ const CreateSession: React.FC = () => {
     dayOfWeek: 'Monday',
     startDate: '',
     endDate: '',
-    startTime: '15:30', // 3:30 PM
-    endTime: '17:30',   // 5:30 PM
+    startTime: '15:30',
+    endTime: '17:30',
     location: '',
-    city: 'Wellington',
+    city: '',
     locationUrl: '',
     capacity: 20,
     minAge: 5,
-    maxAge: 13,
+    maxAge: 18,
     staffIds: [],
   });
 
@@ -48,23 +49,55 @@ const CreateSession: React.FC = () => {
   const [loadingStaff, setLoadingStaff] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [success, setSuccess] = useState(false);
 
-  // Load staff members on component mount
   useEffect(() => {
-    const loadStaff = async () => {
-      try {
-        const staff = await sessionAPI.getStaff();
-        setStaffMembers(staff);
-      } catch (error) {
-        console.error('Failed to load staff members:', error);
-      } finally {
-        setLoadingStaff(false);
-      }
-    };
-
+    if (id) {
+      loadSession(parseInt(id));
+    }
     loadStaff();
-  }, []);
+  }, [id]);
+
+  const loadStaff = async () => {
+    try {
+      const staff = await sessionAPI.getStaff();
+      setStaffMembers(staff);
+    } catch (error) {
+      console.error('Failed to load staff members:', error);
+    } finally {
+      setLoadingStaff(false);
+    }
+  };
+
+  const loadSession = async (sessionId: number) => {
+    try {
+      setIsFetching(true);
+      const session = await sessionAPI.getSession(sessionId);
+      setFormData({
+        title: session.title,
+        term: session.term || 'Term 1',
+        dayOfWeek: session.dayOfWeek || 'Monday',
+        startDate: session.startDate,
+        endDate: session.endDate,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        location: session.location || '',
+        city: session.city || '',
+        locationUrl: session.locationUrl || '',
+        capacity: session.capacity,
+        minAge: session.minAge,
+        maxAge: session.maxAge,
+        staffIds: session.staff?.map(s => s.id) || [],
+      });
+    } catch (error) {
+      setErrors({
+        general: error instanceof Error ? error.message : 'Failed to load session',
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -166,7 +199,7 @@ const CreateSession: React.FC = () => {
     setErrors({});
 
     try {
-      await sessionAPI.createSession({
+      await sessionAPI.updateSession(parseInt(id!), {
         title: formData.title.trim(),
         term: formData.term,
         dayOfWeek: formData.dayOfWeek,
@@ -190,12 +223,26 @@ const CreateSession: React.FC = () => {
       }, 2000);
     } catch (error) {
       setErrors({
-        general: error instanceof Error ? error.message : 'Failed to create session',
+        general: error instanceof Error ? error.message : 'Failed to update session',
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isFetching) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6AA469] mx-auto mb-4"></div>
+            <p className="text-tuhura-gray">Loading session...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -212,15 +259,15 @@ const CreateSession: React.FC = () => {
               </svg>
               Back to Sessions
             </button>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Session</h1>
-            <p className="mt-2 text-tuhura-gray">Fill in the details to create a new session.</p>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Session</h1>
+            <p className="mt-2 text-tuhura-gray">Update the session details below.</p>
           </div>
 
           <div className="card">
             <form onSubmit={handleSubmit} className="space-y-6">
               {success && (
                 <div className="success-message bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg">
-                  Session created successfully! Redirecting...
+                  Session updated successfully! Redirecting...
                 </div>
               )}
 
@@ -241,7 +288,7 @@ const CreateSession: React.FC = () => {
                   type="text"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="e.g., Walter Nash Neighbourhood Hub"
+                  placeholder="e.g., Introduction to Robotics"
                   className={`input-field ${errors.title ? 'input-error' : ''}`}
                 />
                 {errors.title && <p className="error-message">{errors.title}</p>}
@@ -511,10 +558,10 @@ const CreateSession: React.FC = () => {
                   {isLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Creating...
+                      Updating...
                     </>
                   ) : (
-                    'Create Session'
+                    'Update Session'
                   )}
                 </button>
               </div>
@@ -526,4 +573,4 @@ const CreateSession: React.FC = () => {
   );
 };
 
-export default CreateSession;
+export default EditSession;

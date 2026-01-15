@@ -1,63 +1,66 @@
-export interface Term {
+export interface StaffMember {
   id: number;
-  name: string;
-  year: number;
-  startDate: string;
-  endDate: string;
-}
-
-export interface Staff {
-  id: number;
-  name: string;
+  userName: string;
   email: string;
-  role: string;
 }
 
 export interface SessionFormData {
+  title: string;
   term: string;
-  year: number;
-  startDateTime: string;
+  dayOfWeek: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
+  city: string;
+  locationUrl?: string;
   capacity: number;
   minAge: number;
   maxAge: number;
-  assignedStaff: number[];
-  recurringPattern?: 'weekly' | 'biweekly' | 'none';
-  endDate?: string;
+  staffIds: number[];
 }
 
 export interface Session {
   id: number;
+  title: string;
   term: string;
-  year: number;
-  startDateTime: string;
-  endDateTime: string;
+  dayOfWeek: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
+  city: string;
+  locationUrl?: string;
   capacity: number;
   minAge: number;
   maxAge: number;
-  assignedStaff: Staff[];
-  rrule?: string;
+  createdBy: number;
   createdAt: string;
   updatedAt: string;
+  staff: StaffMember[];
 }
 
 export interface CreateSessionRequest {
+  title: string;
   term: string;
-  year: number;
-  startDateTime: string;
+  dayOfWeek: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
+  city: string;
+  locationUrl?: string;
   capacity: number;
   minAge: number;
   maxAge: number;
-  assignedStaffIds: number[];
-  recurringPattern?: 'weekly' | 'biweekly' | 'none';
-  endDate?: string;
+  staffIds?: number[];
 }
 
 export interface CreateSessionResponse {
   status: string;
   message: string;
-  sessionId: number;
-  rrule?: string;
+  session: Session;
 }
