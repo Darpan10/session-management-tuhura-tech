@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sessionAPI } from '../../services/sessionAPI';
+import { termAPI, Term } from '../../services/termAPI';
 import type { SessionFormData, StaffMember } from '../../types/session';
 import Sidebar from '../../components/Sidebar';
 import { useAuth } from '../../context/AuthContext';
+import { useGooglePlacesAutocomplete } from '../../hooks/useGooglePlacesAutocomplete';
 
-const TERMS = ['Term 1', 'Term 2', 'Term 3', 'Term 4'];
 const DAYS_OF_WEEK = [
   'Monday',
   'Tuesday',
@@ -29,42 +30,61 @@ const CreateSession: React.FC = () => {
 
   const [formData, setFormData] = useState<SessionFormData>({
     title: '',
-    term: 'Term 1',
+    description: '',
+    termIds: [],
     dayOfWeek: 'Monday',
-    startDate: '',
-    endDate: '',
     startTime: '15:30', // 3:30 PM
     endTime: '17:30',   // 5:30 PM
     location: '',
-    city: '',
+    city: 'Wellington',
     locationUrl: '',
     capacity: 20,
     minAge: 5,
-    maxAge: 18,
+    maxAge: 13,
     staffIds: [],
   });
 
+  const [terms, setTerms] = useState<Term[]>([]);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
+  const [loadingTerms, setLoadingTerms] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const locationInputRef = useRef<HTMLInputElement>(null);
 
-  // Load staff members on component mount
+  // Load terms and staff members on component mount
   useEffect(() => {
-    const loadStaff = async () => {
+    const loadData = async () => {
       try {
-        const staff = await sessionAPI.getStaff();
+        const [termsData, staff] = await Promise.all([
+          termAPI.getAllTerms(),
+          sessionAPI.getStaff()
+        ]);
+        setTerms(termsData);
         setStaffMembers(staff);
       } catch (error) {
-        console.error('Failed to load staff members:', error);
+        console.error('Failed to load data:', error);
+        setErrors({ general: 'Failed to load terms and staff. Please refresh the page.' });
       } finally {
         setLoadingStaff(false);
+        setLoadingTerms(false);
       }
     };
 
-    loadStaff();
+    loadData();
   }, []);
+
+  // Setup Google Places Autocomplete
+  useGooglePlacesAutocomplete(locationInputRef, (place) => {
+    if (place.formatted_address) {
+      setFormData(prev => ({
+        ...prev,
+        location: place.formatted_address || '',
+        locationUrl: place.url || '',
+      }));
+    }
+  });
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -73,28 +93,12 @@ const CreateSession: React.FC = () => {
       newErrors.title = 'Title must be at least 3 characters';
     }
 
-    if (!formData.term) {
-      newErrors.term = 'Term is required';
+    if (formData.termIds.length === 0) {
+      newErrors.termIds = 'At least one term is required';
     }
 
     if (!formData.dayOfWeek) {
       newErrors.dayOfWeek = 'Day of week is required';
-    }
-
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
-    }
-
-    if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
-    }
-
-    if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      if (end < start) {
-        newErrors.endDate = 'End date must be after or equal to start date';
-      }
     }
 
     if (!formData.startTime) {
@@ -142,7 +146,7 @@ const CreateSession: React.FC = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
     let parsedValue: string | number = value;
@@ -168,10 +172,9 @@ const CreateSession: React.FC = () => {
     try {
       await sessionAPI.createSession({
         title: formData.title.trim(),
-        term: formData.term,
+        description: formData.description?.trim(),
+        termIds: formData.termIds,
         dayOfWeek: formData.dayOfWeek,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
         startTime: formData.startTime,
         endTime: formData.endTime,
         location: formData.location.trim(),
@@ -241,86 +244,85 @@ const CreateSession: React.FC = () => {
                   type="text"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="e.g., Introduction to Robotics"
+                  placeholder="e.g., Walter Nash Neighbourhood Hub"
                   className={`input-field ${errors.title ? 'input-error' : ''}`}
                 />
                 {errors.title && <p className="error-message">{errors.title}</p>}
               </div>
 
-              {/* Term and Day of Week */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="term" className="block text-sm font-medium text-gray-700">
-                    Term <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="term"
-                    name="term"
-                    value={formData.term}
-                    onChange={handleChange}
-                    className={`input-field ${errors.term ? 'input-error' : ''}`}
-                  >
-                    {TERMS.map((term) => (
-                      <option key={term} value={term}>
-                        {term}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.term && <p className="error-message">{errors.term}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="dayOfWeek" className="block text-sm font-medium text-gray-700">
-                    Day of Week <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="dayOfWeek"
-                    name="dayOfWeek"
-                    value={formData.dayOfWeek}
-                    onChange={handleChange}
-                    className={`input-field ${errors.dayOfWeek ? 'input-error' : ''}`}
-                  >
-                    {DAYS_OF_WEEK.map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.dayOfWeek && <p className="error-message">{errors.dayOfWeek}</p>}
-                </div>
+              {/* Session Description */}
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description || ''}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Enter session description..."
+                  className="input-field resize-y min-h-[100px]"
+                />
               </div>
 
-              {/* Start Date and End Date */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-                    Start Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="startDate"
-                    name="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    className={`input-field ${errors.startDate ? 'input-error' : ''}`}
-                  />
-                  {errors.startDate && <p className="error-message">{errors.startDate}</p>}
-                </div>
+              {/* Terms Selection with Checkboxes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Terms <span className="text-red-500">*</span>
+                </label>
+                {loadingTerms ? (
+                  <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                ) : (
+                  <div className="space-y-2">
+                    {terms.map((term) => (
+                      <label key={term.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.termIds.includes(term.id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setFormData(prev => ({
+                              ...prev,
+                              termIds: checked
+                                ? [...prev.termIds, term.id]
+                                : prev.termIds.filter(id => id !== term.id)
+                            }));
+                          }}
+                          className="mt-1 h-4 w-4 text-[#6AA469] focus:ring-[#6AA469] border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{term.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(term.startDate).toLocaleDateString()} - {new Date(term.endDate).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {errors.termIds && <p className="error-message">{errors.termIds}</p>}
+              </div>
 
-                <div>
-                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-                    End Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="endDate"
-                    name="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    className={`input-field ${errors.endDate ? 'input-error' : ''}`}
-                  />
-                  {errors.endDate && <p className="error-message">{errors.endDate}</p>}
-                </div>
+              {/* Day of Week */}
+              <div>
+                <label htmlFor="dayOfWeek" className="block text-sm font-medium text-gray-700">
+                  Day of Week <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="dayOfWeek"
+                  name="dayOfWeek"
+                  value={formData.dayOfWeek}
+                  onChange={handleChange}
+                  className={`input-field ${errors.dayOfWeek ? 'input-error' : ''}`}
+                >
+                  {DAYS_OF_WEEK.map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                    </option>
+                  ))}
+                </select>
+                {errors.dayOfWeek && <p className="error-message">{errors.dayOfWeek}</p>}
               </div>
 
               {/* Start Time and End Time */}
@@ -356,58 +358,39 @@ const CreateSession: React.FC = () => {
                 </div>
               </div>
 
-              {/* Location and City */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                    Location <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder="e.g., Walter Nash Centre"
-                    className={`input-field ${errors.location ? 'input-error' : ''}`}
-                  />
-                  {errors.location && <p className="error-message">{errors.location}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                    City <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="city"
-                    name="city"
-                    type="text"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="e.g., Auckland"
-                    className={`input-field ${errors.city ? 'input-error' : ''}`}
-                  />
-                  {errors.city && <p className="error-message">{errors.city}</p>}
-                </div>
-              </div>
-
-              {/* Location URL (optional) */}
+              {/* Location */}
               <div>
-                <label htmlFor="locationUrl" className="block text-sm font-medium text-gray-700">
-                  Location URL (optional)
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                  Location <span className="text-red-500">*</span>
                 </label>
                 <input
-                  id="locationUrl"
-                  name="locationUrl"
-                  type="url"
-                  value={formData.locationUrl || ''}
+                  ref={locationInputRef}
+                  id="location"
+                  name="location"
+                  type="text"
+                  value={formData.location}
                   onChange={handleChange}
-                  placeholder="https://www.google.com/maps/place/..."
-                  className="input-field"
+                  placeholder="Search for a location in New Zealand..."
+                  className={`input-field ${errors.location ? 'input-error' : ''}`}
                 />
-                <p className="mt-1 text-xs text-tuhura-gray">
-                  Optional Google Maps link for the location
-                </p>
+                {errors.location && <p className="error-message">{errors.location}</p>}
+              </div>
+
+              {/* City */}
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                  City <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="city"
+                  name="city"
+                  type="text"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="e.g., Wellington"
+                  className={`input-field ${errors.city ? 'input-error' : ''}`}
+                />
+                {errors.city && <p className="error-message">{errors.city}</p>}
               </div>
 
               {/* Capacity */}
@@ -428,11 +411,11 @@ const CreateSession: React.FC = () => {
                 {errors.capacity && <p className="error-message">{errors.capacity}</p>}
               </div>
 
-              {/* Age Range */}
+              {/* Years Range */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="minAge" className="block text-sm font-medium text-gray-700">
-                    Minimum Age <span className="text-red-500">*</span>
+                    Minimum Years <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="minAge"
@@ -450,7 +433,7 @@ const CreateSession: React.FC = () => {
 
                 <div>
                   <label htmlFor="maxAge" className="block text-sm font-medium text-gray-700">
-                    Maximum Age <span className="text-red-500">*</span>
+                    Maximum Years <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="maxAge"
@@ -473,7 +456,7 @@ const CreateSession: React.FC = () => {
                   Assign Lead Mentors/Staff (optional)
                 </label>
                 {loadingStaff ? (
-                  <p className="text-sm text-gray-500">Loading staff members...</p>
+                  <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50">
                     {staffMembers.length === 0 ? (

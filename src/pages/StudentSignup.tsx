@@ -33,7 +33,7 @@ const StudentSignup: React.FC = () => {
     schoolYear: '',
     schoolYearOther: '',
     experience: [],
-    needsDevice: null as boolean | null,
+    needsDevice: false,
     medicalInfo: '',
     parentName: '',
     parentPhone: '',
@@ -41,7 +41,7 @@ const StudentSignup: React.FC = () => {
     consentPhotos: false,
     heardFrom: '',
     heardFromOther: '',
-    newsletterSubscribe: null as boolean | null,
+    newsletterSubscribe: true,
   });
 
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -49,6 +49,7 @@ const StudentSignup: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [widgetReady, setWidgetReady] = useState(false);
 
   // Load sessions
   useEffect(() => {
@@ -65,6 +66,50 @@ const StudentSignup: React.FC = () => {
     loadSessions();
   }, []);
 
+  // Load Raisely embed script when success page is shown
+  useEffect(() => {
+    if (submitSuccess) {
+      const existingScript = document.querySelector('script[src="https://cdn.raisely.com/v3/public/embed.js"]');
+      
+      if (!existingScript) {
+        // Add DNS prefetch and preconnect for faster loading
+        const prefetch = document.createElement('link');
+        prefetch.rel = 'dns-prefetch';
+        prefetch.href = 'https://cdn.raisely.com';
+        document.head.appendChild(prefetch);
+
+        const preconnect = document.createElement('link');
+        preconnect.rel = 'preconnect';
+        preconnect.href = 'https://cdn.raisely.com';
+        document.head.appendChild(preconnect);
+
+        const script = document.createElement('script');
+        script.src = 'https://cdn.raisely.com/v3/public/embed.js';
+        script.async = true;
+        script.onload = () => {
+          // Give the widget a moment to initialize
+          setTimeout(() => setWidgetReady(true), 500);
+        };
+        document.head.appendChild(script); // Use head for faster parsing
+        
+        return () => {
+          if (document.head.contains(script)) {
+            document.head.removeChild(script);
+          }
+          if (document.head.contains(prefetch)) {
+            document.head.removeChild(prefetch);
+          }
+          if (document.head.contains(preconnect)) {
+            document.head.removeChild(preconnect);
+          }
+        };
+      } else {
+        // Script already loaded
+        setWidgetReady(true);
+      }
+    }
+  }, [submitSuccess]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -78,9 +123,7 @@ const StudentSignup: React.FC = () => {
     }
     if (!formData.parentName) newErrors.parentName = 'Parent/Guardian name is required';
     if (!formData.parentPhone) newErrors.parentPhone = 'Contact phone is required';
-    if (!formData.consentShareDetails) newErrors.consentShareDetails = 'This consent is required';
     if (formData.needsDevice === null) newErrors.needsDevice = 'Please select if you need a device';
-    if (formData.newsletterSubscribe === null) newErrors.newsletterSubscribe = 'Please select newsletter preference';
     if (!formData.heardFrom) newErrors.heardFrom = 'Please select how you heard about us';
     if (formData.heardFrom === 'Other' && !formData.heardFromOther) {
       newErrors.heardFromOther = 'Please specify';
@@ -118,6 +161,7 @@ const StudentSignup: React.FC = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    
     try {
       await waitlistAPI.submitSignup(formData);
       setSubmitSuccess(true);
@@ -133,36 +177,75 @@ const StudentSignup: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
         <div className="max-w-3xl mx-auto px-4 py-16">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            {/* Success Message */}
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Signup Successful!</h2>
+              <p className="text-lg text-gray-600 mb-6">
+                Thank you for signing up! You've been added to the waitlist.
+                We'll be in touch soon with more information.
+              </p>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Signup Successful!</h2>
-            <p className="text-lg text-gray-600 mb-6">
-              Thank you for signing up! You've been added to the waitlist.
-              We'll be in touch soon with more information.
-            </p>
-            <button
-              onClick={() => {
-                setSubmitSuccess(false);
-                setFormData({
-                  email: '', firstName: '', familyName: '', sessionId: 0,
-                  schoolYear: '', schoolYearOther: '', experience: [],
-                  needsDevice: null as boolean | null, medicalInfo: '', parentName: '',
-                  parentPhone: '', consentShareDetails: false,
-                  consentPhotos: false, heardFrom: '', heardFromOther: '',
-                  newsletterSubscribe: null as boolean | null,
-                });
-              }}
-              className="px-8 py-3 text-white font-semibold rounded-lg transition-colors"
-              style={{ backgroundColor: '#6AA469' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4A8449'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6AA469'}
-            >
-              Submit Another Signup
-            </button>
+
+            {/* Donation Section */}
+            <div className="border-t pt-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+                Support Tuhura Tech
+              </h3>
+              <p className="text-gray-600 mb-6 text-center">
+                If you'd like to support our mission, you can make a donation below. This is completely optional.
+              </p>
+              
+              {/* Raisely Donation Widget - Using JS embed for better integration */}
+              <div className="w-full overflow-auto rounded-lg shadow-sm relative" style={{ minHeight: '700px' }}>
+                {!widgetReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg z-10">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#6AA469' }}></div>
+                      <p className="text-gray-600 mt-4">Loading donation form...</p>
+                    </div>
+                  </div>
+                )}
+                <div
+                  className="raisely-donate"
+                  data-campaign-path="tuhura-tech"
+                  data-profile=""
+                  data-width="100%"
+                  data-height="700"
+                >
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Another Response Button */}
+            <div className="text-center mt-8 pt-6 border-t">
+              <button
+                onClick={() => {
+                  setSubmitSuccess(false);
+                  setWidgetReady(false); // Reset widget state
+                  setFormData({
+                    email: '', firstName: '', familyName: '', sessionId: 0,
+                    schoolYear: '', schoolYearOther: '', experience: [],
+                    needsDevice: false, medicalInfo: '', parentName: '',
+                    parentPhone: '', consentShareDetails: false,
+                    consentPhotos: false, heardFrom: '', heardFromOther: '',
+                    newsletterSubscribe: true,
+                  });
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-8 py-3 text-white font-semibold rounded-lg transition-colors shadow-md hover:shadow-lg"
+                style={{ backgroundColor: '#6AA469' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4A8449'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6AA469'}
+              >
+                Submit Another Signup
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -280,7 +363,7 @@ const StudentSignup: React.FC = () => {
                 <option value="">Select a session</option>
                 {sessions.map(session => (
                   <option key={session.id} value={session.id}>
-                    {session.title} - {session.dayOfWeek} {session.startTime} ({session.term})
+                    {session.title} - {session.dayOfWeek} {session.startTime} ({session.termNames?.join(', ')})
                   </option>
                 ))}
               </select>
@@ -448,11 +531,10 @@ const StudentSignup: React.FC = () => {
                     onChange={handleChange}
                     className="w-5 h-5 border-gray-300 rounded mt-1"
                     style={{ accentColor: '#6AA469' }}
-                    required
                   />
                   <div className="flex-1">
                     <span className="text-sm font-semibold text-gray-900">
-                      Do you consent to your sign-up details being shared with the location? *
+                      Do you consent to your sign-up details being shared with the location?
                     </span>
                     <p className="text-sm text-gray-600 mt-1">
                       Only basic emergency details will be shared.
@@ -518,7 +600,7 @@ const StudentSignup: React.FC = () => {
 
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
               <label className="block text-sm font-semibold text-gray-900 mb-3">
-                Would you like to subscribe to our newsletter to get updates? *
+                Would you like to subscribe to our newsletter to get updates?
               </label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 cursor-pointer">

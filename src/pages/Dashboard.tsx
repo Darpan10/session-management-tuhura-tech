@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
@@ -18,8 +18,7 @@ interface Student {
 }
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const isAdmin = user?.roles?.includes('ADMIN') || false;
   const [totalSessions, setTotalSessions] = useState<number>(0);
@@ -69,11 +68,6 @@ const Dashboard: React.FC = () => {
     } finally {
       setIsLoadingStudents(false);
     }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
   };
 
   return (
@@ -186,7 +180,7 @@ const Dashboard: React.FC = () => {
               {isLoadingStudents ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#00A8E8' }}></div>
-                  <p className="mt-4 text-gray-600">Loading students...</p>
+                  <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
                 </div>
               ) : students.length === 0 ? (
                 <div className="text-center py-8">

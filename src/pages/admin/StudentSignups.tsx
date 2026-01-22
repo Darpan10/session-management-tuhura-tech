@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Eye, Search, Users, Calendar } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import Navbar from '../../components/Navbar';
+import Skeleton from '../../components/Skeleton';
 import axios from 'axios';
 import { sessionAPI } from '../../services/sessionAPI';
 import type { Session } from '../../types/session';
@@ -220,7 +221,7 @@ const StudentSignups = () => {
                               <div className="text-sm font-medium text-gray-900">{session.title}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{session.term}</div>
+                              <div className="text-sm text-gray-900">{session.termNames?.join(', ')}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-900">{session.dayOfWeek}</div>
@@ -266,7 +267,7 @@ const StudentSignups = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Term</p>
-                      <p className="text-base font-medium text-gray-900">{selectedSession.term}</p>
+                      <p className="text-base font-medium text-gray-900">{selectedSession.termNames?.join(', ')}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Day & Time</p>
@@ -292,8 +293,7 @@ const StudentSignups = () => {
                           placeholder="Search students..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-opacity-50"
-                          style={{ focusRingColor: '#00A8E8' }}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A8E8] focus:ring-opacity-50"
                         />
                       </div>
                     </div>

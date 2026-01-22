@@ -4,12 +4,19 @@ export interface StaffMember {
   email: string;
 }
 
-export interface SessionFormData {
-  title: string;
-  term: string;
-  dayOfWeek: string;
+export interface TermDetail {
+  id: number;
+  name: string;
   startDate: string;
   endDate: string;
+  year: number;
+}
+
+export interface SessionFormData {
+  title: string;
+  description?: string;
+  termIds: number[];
+  dayOfWeek: string;
   startTime: string;
   endTime: string;
   location: string;
@@ -24,7 +31,10 @@ export interface SessionFormData {
 export interface Session {
   id: number;
   title: string;
-  term: string;
+  description?: string;
+  termIds: number[];
+  termNames: string[];
+  terms: TermDetail[];  // Full term details with dates
   dayOfWeek: string;
   startDate: string;
   endDate: string;
@@ -36,18 +46,38 @@ export interface Session {
   capacity: number;
   minAge: number;
   maxAge: number;
+  isDeleted: boolean;
   createdBy: number;
   createdAt: string;
   updatedAt: string;
   staff: StaffMember[];
 }
 
-export interface CreateSessionRequest {
+export interface SessionWithCount {
+  id: number;
   title: string;
   term: string;
   dayOfWeek: string;
   startDate: string;
   endDate: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  city: string;
+  studentCount: number;
+}
+
+export interface AllSessionsStudentCountResponse {
+  status: string;
+  totalStudents: number;
+  sessions: SessionWithCount[];
+}
+
+export interface CreateSessionRequest {
+  title: string;
+  description?: string;
+  termIds: number[];
+  dayOfWeek: string;
   startTime: string;
   endTime: string;
   location: string;

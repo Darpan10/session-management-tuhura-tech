@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { sessionAPI } from '../../services/sessionAPI';
 import type { Session } from '../../types/session';
 import Sidebar from '../../components/Sidebar';
+import Skeleton from '../../components/Skeleton';
 import Calendar from '../../components/Calendar';
 import type { DateSelectArg } from '@fullcalendar/core';
 import { useAuth } from '../../context/AuthContext';
@@ -94,7 +95,7 @@ const CalendarView: React.FC = () => {
             </div>
           ) : (
             <Calendar
-              sessions={sessions}
+              sessions={sessions.filter(s => !s.isDeleted)}
               onEventClick={handleEventClick}
               onDateSelect={isAdmin ? handleDateSelect : undefined}
               currentUserId={user?.id}
@@ -103,7 +104,7 @@ const CalendarView: React.FC = () => {
 
           {/* Session Detail Modal */}
           {selectedSession && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
               <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Modal Header */}
                 <div className="bg-gradient-to-r from-[#1E6193] to-[#6AA469] text-white p-6 rounded-t-lg">
@@ -112,7 +113,7 @@ const CalendarView: React.FC = () => {
                       <h2 className="text-2xl font-bold">{selectedSession.title}</h2>
                       <div className="flex items-center mt-2 space-x-3">
                         <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
-                          {selectedSession.term}
+                          {selectedSession.termNames?.join(', ')}
                         </span>
                         <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
                           {selectedSession.dayOfWeek}
@@ -155,7 +156,7 @@ const CalendarView: React.FC = () => {
                   {/* Location */}
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Location</p>
-                    <p className="font-medium text-gray-900">{selectedSession.location}, {selectedSession.city}</p>
+                    <p className="font-medium text-gray-900 break-words">{selectedSession.location}, {selectedSession.city}</p>
                     {selectedSession.locationUrl && (
                       <a
                         href={selectedSession.locationUrl}
@@ -175,7 +176,7 @@ const CalendarView: React.FC = () => {
                       <p className="font-medium text-gray-900">{selectedSession.capacity} participants</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Age Range</p>
+                      <p className="text-sm text-gray-500 mb-1">Years Range</p>
                       <p className="font-medium text-gray-900">{selectedSession.minAge} - {selectedSession.maxAge} years</p>
                     </div>
                   </div>
@@ -208,12 +209,26 @@ const CalendarView: React.FC = () => {
                     Close
                   </button>
                   {isAdmin && (
-                    <button
-                      onClick={() => navigate(`/admin/sessions/${selectedSession.id}/edit`)}
-                      className="btn-primary"
-                    >
-                      Edit Session
-                    </button>
+                    <>
+                      <button
+                        onClick={() => navigate(`/admin/attendance/${selectedSession.id}`)}
+                        className="px-4 py-2 bg-[#00A8E8] text-white rounded-lg hover:bg-[#0088C8] transition-colors font-medium"
+                      >
+                        Attendance
+                      </button>
+                      <button
+                        onClick={() => navigate(`/admin/sessions/${selectedSession.id}/waitlist`)}
+                        className="px-4 py-2 bg-[#6AA469] text-white rounded-lg hover:bg-[#5A9459] transition-colors font-medium"
+                      >
+                        Manage Students
+                      </button>
+                      <button
+                        onClick={() => navigate(`/admin/sessions/${selectedSession.id}/edit`)}
+                        className="btn-primary"
+                      >
+                        Edit Session
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

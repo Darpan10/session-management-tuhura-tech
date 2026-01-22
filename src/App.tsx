@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import Skeleton from './components/Skeleton'
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import SessionManagement from './pages/admin/SessionManagement';
-import CreateSession from './pages/admin/CreateSession';
-import EditSession from './pages/admin/EditSession';
-import CalendarView from './pages/admin/CalendarView';
-import WaitlistManagement from './pages/admin/WaitlistManagement';
+// Lazy-load heavy admin routes to reduce initial bundle size
+const SessionManagement = lazy(() => import('./pages/admin/SessionManagement'))
+const CreateSession = lazy(() => import('./pages/admin/CreateSession'))
+const EditSession = lazy(() => import('./pages/admin/EditSession'))
+const CalendarView = lazy(() => import('./pages/admin/CalendarView'))
+const WaitlistManagement = lazy(() => import('./pages/admin/WaitlistManagement'))
+const StaffManagement = lazy(() => import('./pages/admin/StaffManagement'))
+const GlobalStudentManagement = lazy(() => import('./pages/admin/GlobalStudentManagement'))
+const Attendance = lazy(() => import('./pages/admin/Attendance'))
+const AttendanceList = lazy(() => import('./pages/admin/AttendanceList'))
+const TermManagement = lazy(() => import('./pages/admin/TermManagement'))
+
 import StudentSignup from './pages/StudentSignup';
 import AccountSettings from './pages/AccountSettings';
-import StudentSignups from './pages/admin/StudentSignups';
-import EditStudent from './pages/admin/EditStudent';
-import ViewStudent from './pages/admin/ViewStudent';
 
 const App: React.FC = () => {
   return (
@@ -51,7 +56,9 @@ const App: React.FC = () => {
             path="/admin/sessions"
             element={
               <ProtectedRoute>
-                <SessionManagement />
+                <Suspense fallback={<div className="p-8 text-center">Loading sessions...</div>}>
+                  <SessionManagement />
+                </Suspense>
               </ProtectedRoute>
             }
           />
@@ -59,7 +66,9 @@ const App: React.FC = () => {
             path="/admin/calendar"
             element={
               <ProtectedRoute>
-                <CalendarView />
+                <Suspense fallback={<div className="p-8 text-center">Loading calendar...</div>}>
+                  <CalendarView />
+                </Suspense>
               </ProtectedRoute>
             }
           />
@@ -67,7 +76,9 @@ const App: React.FC = () => {
             path="/admin/sessions/create"
             element={
               <ProtectedRoute>
-                <CreateSession />
+                <Suspense fallback={<div className="p-8 text-center">Loading editor...</div>}>
+                  <CreateSession />
+                </Suspense>
               </ProtectedRoute>
             }
           />
@@ -75,7 +86,9 @@ const App: React.FC = () => {
             path="/admin/sessions/:id/edit"
             element={
               <ProtectedRoute>
-                <EditSession />
+                <Suspense fallback={<div className="p-8 text-center">Loading editor...</div>}>
+                  <EditSession />
+                </Suspense>
               </ProtectedRoute>
             }
           />
@@ -83,31 +96,79 @@ const App: React.FC = () => {
             path="/admin/sessions/:sessionId/waitlist"
             element={
               <ProtectedRoute>
-                <WaitlistManagement />
+                <Suspense fallback={<div className="p-8 text-center">Loading waitlist...</div>}>
+                  <WaitlistManagement />
+                </Suspense>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/admin/students"
+            path="/admin/attendance"
             element={
               <ProtectedRoute>
-                <StudentSignups />
+                <Suspense fallback={<Skeleton variant="sessions" />}>
+                  <AttendanceList />
+                </Suspense>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/admin/students/:id/edit"
+            path="/admin/attendance/:sessionId"
             element={
               <ProtectedRoute>
-                <EditStudent />
+                <Suspense fallback={<Skeleton variant="attendance" />}>
+                  <Attendance />
+                </Suspense>
               </ProtectedRoute>
             }
           />
           <Route
-            path="/admin/students/:id"
+            path="/admin/students/waitlist"
             element={
               <ProtectedRoute>
-                <ViewStudent />
+                <Suspense fallback={<Skeleton variant="sessions" />}>
+                  <GlobalStudentManagement />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/students/admitted"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<Skeleton variant="sessions" />}>
+                  <GlobalStudentManagement />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/students/withdrawn"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<Skeleton variant="sessions" />}>
+                  <GlobalStudentManagement />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/staff"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<Skeleton variant="staff" />}>
+                  <StaffManagement />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/terms"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<Skeleton variant="terms" />}>
+                  <TermManagement />
+                </Suspense>
               </ProtectedRoute>
             }
           />
